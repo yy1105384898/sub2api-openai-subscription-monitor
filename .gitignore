@@ -1,0 +1,6 @@
+/.keys/
+/build/
+/dist/*.s2plugin
+/backups/
+/output/
+/.playwright-cli/

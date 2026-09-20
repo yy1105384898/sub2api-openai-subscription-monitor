@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenAI 订阅监控</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="assets/app.css">
+  <script src="assets/app.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <h1>OpenAI 订阅监控</h1>
+        <p id="subtitle">等待运行时状态</p>
+      </div>
+      <button id="refresh" class="icon-button" type="button" aria-label="立即刷新" title="立即刷新">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8.1 8.1 0 0 0-14.9-4M4 4v6h6M4 13a8.1 8.1 0 0 0 14.9 4M20 20v-6h-6"/></svg>
+      </button>
+    </header>
+
+    <section class="metrics" aria-label="监控摘要">
+      <article><span>账号</span><strong id="total">0</strong></article>
+      <article><span>付费订阅</span><strong id="paid">0</strong></article>
+      <article><span>7 天内到期</span><strong id="expiring">0</strong></article>
+      <article><span>检查失败</span><strong id="failed">0</strong></article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-heading">
+        <h2>账号状态</h2>
+        <span id="updated" role="status" aria-atomic="true">尚未刷新</span>
+      </div>
+      <div id="accounts" class="account-list">
+        <div class="empty">启用插件后将自动读取已登录的 OpenAI OAuth 账号</div>
+      </div>
+    </section>
+
+    <section class="settings">
+      <h2>监控设置</h2>
+      <form id="settings-form">
+        <label>刷新间隔（分钟）<input id="interval" name="interval_minutes" type="number" min="5" max="1440" required></label>
+        <label>请求超时（秒）<input id="timeout" name="request_timeout_seconds" type="number" min="5" max="60" required></label>
+        <label>并发检查数<input id="concurrency" name="max_concurrency" type="number" min="1" max="10" required></label>
+        <label class="toggle"><input id="usage" name="include_usage" type="checkbox"><span>同步 5 小时 / 7 天用量</span></label>
+        <label class="toggle"><input id="mask-identity" name="mask_account_identity" type="checkbox"><span>账号邮箱和 ID 脱敏显示</span></label>
+        <button id="save" class="primary" type="submit">保存设置</button>
+      </form>
+      <p id="form-status" class="form-status" role="status" aria-atomic="true"></p>
+    </section>
+  </main>
+
+  <dialog id="account-detail" class="detail-dialog" aria-labelledby="detail-title">
+    <div class="detail-shell">
+      <header class="detail-header">
+        <div><h2 id="detail-title">官方统计</h2><p id="detail-account"></p></div>
+        <button id="detail-close" class="icon-button" type="button" aria-label="关闭详情" title="关闭详情">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </header>
+      <div id="detail-body" class="detail-body"></div>
+    </div>
+  </dialog>
+</body>
+</html>
