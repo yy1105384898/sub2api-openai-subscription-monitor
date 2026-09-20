@@ -1,8 +1,11 @@
 package monitor
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
+
+	pluginv1 "github.com/yy1105384898/sub2api-openai-subscription-monitor/pluginapi/v1"
 )
 
 func TestParseConfigDefaults(t *testing.T) {
@@ -47,6 +50,9 @@ func TestMasking(t *testing.T) {
 	if got := maskID("acct-1234567890"); got != "acct...7890" {
 		t.Fatalf("maskID = %q", got)
 	}
+	if got := maskID("acct...7890"); got != "acct...7890" {
+		t.Fatalf("maskID should be idempotent, got %q", got)
+	}
 }
 
 func TestIdentityDisplayCanBeUnmasked(t *testing.T) {
@@ -55,6 +61,25 @@ func TestIdentityDisplayCanBeUnmasked(t *testing.T) {
 	}
 	if got := displayID(" acct-1234567890 ", false); got != "acct-1234567890" {
 		t.Fatalf("displayID = %q", got)
+	}
+}
+
+func TestApplyConfigMasksExistingSnapshotBeforeRefresh(t *testing.T) {
+	p := New("test")
+	p.config.MaskAccountIdentity = false
+	p.status = Status{Total: 1, Accounts: []AccountStatus{{HostAccountID: 42, Email: "alice@example.com", AccountID: "acct-1234567890"}}}
+	cfg := defaultConfig()
+	raw, _ := json.Marshal(cfg)
+	response, err := p.ApplyConfig(context.Background(), &pluginv1.ApplyConfigRequest{ConfigJson: raw})
+	if err != nil || !response.GetApplied() {
+		t.Fatalf("apply config: %v, %+v", err, response)
+	}
+	var status Status
+	if err := json.Unmarshal([]byte(p.statusJSON()), &status); err != nil {
+		t.Fatal(err)
+	}
+	if len(status.Accounts) != 1 || status.Accounts[0].Email != "a***@example.com" || status.Accounts[0].AccountID != "acct...7890" {
+		t.Fatalf("unmasked snapshot after save: %+v", status.Accounts)
 	}
 }
 

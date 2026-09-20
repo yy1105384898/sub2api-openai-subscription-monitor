@@ -62,7 +62,7 @@ func main() {
 	uiDir := flag.String("ui", "ui", "UI directory")
 	output := flag.String("output", "dist/openai-subscription-monitor.s2plugin", "output package")
 	keyDir := flag.String("key-dir", ".keys", "publisher key directory")
-	version := flag.String("version", "0.2.0", "plugin version")
+	version := flag.String("version", "0.2.1", "plugin version")
 	flag.Parse()
 	if *binary == "" {
 		fatal("-binary is required")

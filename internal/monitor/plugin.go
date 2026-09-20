@@ -162,15 +162,27 @@ func (p *Plugin) ValidateConfig(_ context.Context, req *pluginv1.ValidateConfigR
 	return &pluginv1.ValidateConfigResponse{Valid: true, Message: "配置有效", NormalizedConfigJson: normalized}, nil
 }
 
-func (p *Plugin) ApplyConfig(_ context.Context, req *pluginv1.ApplyConfigRequest) (*pluginv1.ApplyConfigResponse, error) {
+func (p *Plugin) ApplyConfig(ctx context.Context, req *pluginv1.ApplyConfigRequest) (*pluginv1.ApplyConfigResponse, error) {
 	cfg, _, err := parseConfig(req.GetConfigJson())
 	if err != nil {
 		return &pluginv1.ApplyConfigResponse{Applied: false, Message: err.Error()}, nil
 	}
 	p.mu.Lock()
+	maskExisting := cfg.MaskAccountIdentity && !p.config.MaskAccountIdentity
 	p.config = cfg
 	hasHost := p.host != nil
+	if maskExisting {
+		p.status.Accounts = append([]AccountStatus(nil), p.status.Accounts...)
+		for i := range p.status.Accounts {
+			p.status.Accounts[i].Email = maskEmail(p.status.Accounts[i].Email)
+			p.status.Accounts[i].AccountID = maskID(p.status.Accounts[i].AccountID)
+		}
+	}
+	status, host := p.status, p.host
 	p.mu.Unlock()
+	if maskExisting && hasHost {
+		p.saveSnapshot(ctx, host, status)
+	}
 	if hasHost {
 		p.restartLoop()
 	}
@@ -422,6 +434,12 @@ func (p *Plugin) loadSnapshot(ctx context.Context) {
 	var status Status
 	if json.Unmarshal(response.GetValue(), &status) == nil {
 		p.mu.Lock()
+		if p.config.MaskAccountIdentity {
+			for i := range status.Accounts {
+				status.Accounts[i].Email = maskEmail(status.Accounts[i].Email)
+				status.Accounts[i].AccountID = maskID(status.Accounts[i].AccountID)
+			}
+		}
 		status.Running = true
 		p.status = status
 		p.mu.Unlock()

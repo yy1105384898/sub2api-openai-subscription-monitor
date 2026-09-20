@@ -214,6 +214,7 @@ input:focus-visible {
   width: min(860px, calc(100vw - 28px));
   max-height: min(820px, calc(100vh - 28px));
   padding: 0;
+  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
@@ -223,8 +224,12 @@ input:focus-visible {
   background: rgb(0 0 0 / 0.5);
 }
 .detail-shell {
-  max-height: inherit;
+  max-height: min(820px, calc(100vh - 28px));
   overflow: auto;
+}
+html:has(.detail-dialog[open]),
+body:has(.detail-dialog[open]) {
+  overflow: hidden;
 }
 .detail-header {
   position: sticky;
@@ -452,6 +457,9 @@ input:focus-visible {
   }
   .detail-dialog {
     width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+  }
+  .detail-shell {
     max-height: calc(100vh - 16px);
   }
   .detail-header,

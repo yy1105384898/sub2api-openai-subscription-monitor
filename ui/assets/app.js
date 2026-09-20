@@ -4,6 +4,7 @@
   const pending = new Map();
   let sequence = 0;
   let latestAccounts = [];
+  let pendingRefreshAt = 0;
 
   function request(type, payload = {}, timeout = 15000) {
     const requestId = `${Date.now().toString(36)}-${(++sequence).toString(36)}`;
@@ -36,6 +37,10 @@
   };
 
   function renderStatus(status) {
+    if (pendingRefreshAt && Date.parse(status.last_refresh_at || '') >= pendingRefreshAt - 1000) {
+      pendingRefreshAt = 0;
+      $('form-status').textContent = '设置已保存并生效';
+    }
     $('total').textContent = status.total ?? 0;
     $('paid').textContent = status.paid ?? 0;
     $('expiring').textContent = status.expiring_soon ?? 0;
@@ -173,11 +178,11 @@
     event.preventDefault(); $('save').disabled = true; $('form-status').textContent = '正在保存…';
     try {
       await request('config.save', { config: { interval_minutes: Number($('interval').value), request_timeout_seconds: Number($('timeout').value), max_concurrency: Number($('concurrency').value), include_usage: $('usage').checked, mask_account_identity: $('mask-identity').checked } }, 30000);
-      $('form-status').textContent = '设置已保存，正在刷新账号…';
-      const response = await request('config.test', {}, 90000);
-      const raw = response.result?.status_json;
-      if (raw) renderStatus(JSON.parse(raw));
-      $('form-status').textContent = '设置已保存并生效'; notify('success', '订阅监控设置已保存');
+      pendingRefreshAt = Date.now();
+      $('form-status').textContent = '设置已保存，后台刷新账号中…';
+      await loadConfig();
+      await loadStatus();
+      notify('success', '订阅监控设置已保存');
     } catch (error) { $('form-status').textContent = error.message; }
     finally { $('save').disabled = false; resize(); }
   });

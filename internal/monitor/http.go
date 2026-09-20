@@ -186,6 +186,9 @@ func maskEmail(email string) string {
 
 func maskID(value string) string {
 	value = strings.TrimSpace(value)
+	if len(value) == 11 && value[4:7] == "..." {
+		return value
+	}
 	if len(value) <= 8 {
 		return value
 	}
