@@ -62,7 +62,7 @@ func main() {
 	uiDir := flag.String("ui", "ui", "UI directory")
 	output := flag.String("output", "dist/openai-subscription-monitor.s2plugin", "output package")
 	keyDir := flag.String("key-dir", ".keys", "publisher key directory")
-	version := flag.String("version", "0.2.1", "plugin version")
+	version := flag.String("version", "0.2.2", "plugin version")
 	flag.Parse()
 	if *binary == "" {
 		fatal("-binary is required")
@@ -115,9 +115,9 @@ func main() {
 		Description:   "自动读取 Sub2API 中已登录的 OpenAI OAuth 账号，监控套餐、续费、到期时间和 Codex 用量。",
 		Author:        "yangyang",
 		Requires: manifestRequires{
-			Sub2API:                   ">=2.7.4 <2.8.0",
-			RecommendedSub2APIVersion: "2.7.4",
-			TestedSub2APIVersions:     []string{"2.7.4"},
+			Sub2API:                   ">=0.2.7 <0.2.8",
+			RecommendedSub2APIVersion: "0.2.7",
+			TestedSub2APIVersions:     []string{"0.2.7"},
 			PluginProtocol:            1,
 			TransportAPI:              1,
 			UIBridge:                  1,

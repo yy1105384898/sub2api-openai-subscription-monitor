@@ -1,6 +1,6 @@
 # OpenAI 订阅监控（Sub2API 插件）
 
-用于 [ranxi2001/sub2api](https://github.com/ranxi2001/sub2api) `v2.7.4` 的可安装插件。插件 ID 为 `yangyang.openai.subscription-monitor`，兼容范围锁定为 `>=2.7.4 <2.8.0`。其他版本未验证，不要强行安装。
+用于官方 [Wei-Shaw/sub2api](https://github.com/Wei-Shaw/sub2api) `0.2.7` 的可安装插件。插件 ID 为 `yangyang.openai.subscription-monitor`，兼容范围锁定为 `>=0.2.7 <0.2.8`。其他版本未验证，不要强行安装。
 
 插件从宿主账号目录枚举已登录的 OpenAI OAuth 账号，复用宿主提供的临时身份和账号代理，不发起新登录，也不读取数据库。宿主目前只开放**启用中的 OpenAI OAuth、非影子账号**；停用、影子、Setup Token 等账号不会被列出，因此数量可能少于后台账号总数。账号列表显示套餐、订阅到期/续费状态及 5 小时、7 天窗口摘要；账号旁的统计图按钮打开二级详情：
 
@@ -13,7 +13,7 @@
 
 ## 安装与升级
 
-1. 从 [Releases](https://github.com/yy1105384898/sub2api-openai-subscription-monitor/releases) 下载 `openai-subscription-monitor-0.2.1.s2plugin`；公钥见仓库的 [`dist/publisher-public-key.txt`](dist/publisher-public-key.txt)。
+1. 从 [Releases](https://github.com/yy1105384898/sub2api-openai-subscription-monitor/releases) 下载 `openai-subscription-monitor-0.2.2.s2plugin`；公钥见仓库的 [`dist/publisher-public-key.txt`](dist/publisher-public-key.txt)。
 2. 在 Sub2API 服务端配置可信发布者公钥。将公钥文件中的 `key_id=base64_public_key` 拆为配置映射（只配置公钥，绝不使用 `.keys/publisher-private.key`）：
 
    ```yaml
@@ -33,7 +33,7 @@
 
 插件**不持久化 OAuth Token**；但会把账号状态快照写入宿主插件 KV。关闭脱敏后，KV 快照及管理端状态响应中也会包含完整邮箱和账号 ID，请只对可信管理员开放插件配置页。重新开启脱敏会立即遮盖运行中快照，并尝试覆盖 KV；若 KV 写入失败，历史快照可能仍含明文，需检查宿主存储状态。上游查询失败时保留错误/未知状态，不把失败当作零额度。
 
-插件管理页的“未验证版本”只表示**当前宿主版本未精确命中**包内 `tested_sub2api_versions`，与包签名“已验证”、本地测试通过是三件事。本包只声明 `2.7.4`；若后台显示的当前 Sub2API 版本不同，仍在兼容范围内也会显示“未验证版本”，启用时需额外确认。不要为了去掉提示而虚构测试版本。
+插件管理页的“未验证版本”只表示**当前宿主版本未精确命中**包内 `tested_sub2api_versions`，与包签名“已验证”、本地测试通过是三件事。本包现在声明官方 `0.2.7`；本机保存的旧 `2.7.4` 源码不是本次版本依据。若后台显示的当前 Sub2API 版本不同，仍在兼容范围内也会显示“未验证版本”，启用时需额外确认。由于本地没有官方 `0.2.7` 源码，尚未完成该版本的完整运行链路复测。
 
 插件声明 `openai.oauth.outbound_transport.v1` 能力，因此还实现透明 HTTP 转发。启用前先灰度和验证原有请求链路；不可把它当成纯离线报表插件。
 
@@ -43,8 +43,8 @@
 
 ```powershell
 go test ./internal/... ./cmd/... ./pluginapi/...
-./build.ps1 -Version 0.2.1
-go run ./cmd/runtimecheck -package dist/openai-subscription-monitor-0.2.1.s2plugin -public-key dist/publisher-public-key.txt
+./build.ps1 -Version 0.2.2
+go run ./cmd/runtimecheck -package dist/openai-subscription-monitor-0.2.2.s2plugin -public-key dist/publisher-public-key.txt
 ```
 
 `build.ps1` 会生成 Linux amd64 与 Windows amd64 运行时并用**本机** `.keys/publisher-private.key` 签名。仓库不包含私钥；自行构建若生成新私钥，必须把**新公钥**配置到目标 Sub2API，仓库提供的公钥无法验证你的本地新包。官方发布包使用仓库所示公钥。`runtimecheck` 验证文件哈希、签名、运行时握手、配置与透明转发，不会连接真实 OpenAI 账号。
